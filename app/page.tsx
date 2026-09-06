@@ -12,38 +12,87 @@ export default function Home() {
       
       <main>
         {/* Hero Section */}
-        <section style={{ position: 'relative', height: '100vh', width: '100%', overflow: 'hidden' }}>
-          <Image 
-            src="/images/01-hammock-facade-hero.jpg" 
-            alt="Hammock Facade"
-            fill
-            priority
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-          />
-          {/* Subtle burgundy-to-transparent overlay */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to top, rgba(89, 10, 23, 0.4) 0%, rgba(89, 10, 23, 0) 60%)',
-          }} />
-          
-          <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '6rem' }}>
-            <div style={{ maxWidth: '800px', color: 'var(--hammock-cream)' }}>
-              <span style={{ display: 'block', fontSize: '0.875rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem', fontWeight: 500 }}>
-                HAMMOCK SUITES AND ROOMS
-              </span>
-              <h1 className="text-display" style={{ marginBottom: '1.5rem' }}>Stay beautifully.</h1>
-              <p className="text-body-lg" style={{ maxWidth: '500px', marginBottom: '2.5rem', opacity: 0.9 }}>
-                A calm, contemporary stay with considered rooms, thoughtful comfort, a private gym, and space to meet.
-              </p>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href="/rooms" className="btn" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)' }}>
-                  Explore rooms
-                </Link>
-                <Link href="/rooms" className="btn" style={{ border: '1px solid var(--hammock-cream)', color: 'var(--hammock-cream)' }}>
-                  Book a stay
-                </Link>
+        <section style={{ 
+          position: 'relative', 
+          minHeight: '100svh', 
+          width: '100%', 
+          display: 'flex',
+          alignItems: 'center',
+          paddingTop: 'var(--nav-height)',
+          backgroundColor: 'var(--hammock-cream)',
+          paddingBottom: 'var(--spacing-12)'
+        }}>
+          <div className="container" style={{ height: '100%' }}>
+            <div className="hero-grid">
+              
+              {/* Text Column */}
+              <div className="hero-text-col">
+                <div style={{ maxWidth: '600px' }}>
+                  <div className="fade-up" style={{ animationDelay: '1.4s' }}>
+                    <span style={{ 
+                      display: 'block', 
+                      fontSize: '0.875rem', 
+                      letterSpacing: '0.1em', 
+                      textTransform: 'uppercase', 
+                      marginBottom: '1.5rem', 
+                      fontWeight: 600,
+                      color: 'var(--hammock-rose)'
+                    }}>
+                      HAMMOCK SUITES AND ROOMS
+                    </span>
+                  </div>
+                  <div className="fade-up" style={{ animationDelay: '1.5s' }}>
+                    <h1 className="hero-headline" style={{ 
+                      fontFamily: 'var(--hammock-display)',
+                      color: 'var(--hammock-burgundy)',
+                      marginBottom: '1.5rem',
+                      lineHeight: 1
+                    }}>
+                      Stay<br/>beautifully.
+                    </h1>
+                  </div>
+                  <div className="fade-up" style={{ animationDelay: '1.6s' }}>
+                    <p className="text-body-lg" style={{ 
+                      color: 'var(--hammock-burgundy)',
+                      marginBottom: '2.5rem', 
+                      opacity: 0.85,
+                      maxWidth: '480px'
+                    }}>
+                      A calm, contemporary stay with considered rooms, thoughtful comfort, a private gym, and space to meet.
+                    </p>
+                  </div>
+                  <div className="fade-up" style={{ animationDelay: '1.7s' }}>
+                    <Link href="/contact" className="btn btn-primary" style={{ 
+                      padding: '1.25rem 2.5rem',
+                      fontSize: '1rem',
+                      borderRadius: '999px',
+                      display: 'inline-flex'
+                    }}>
+                      Book a stay
+                    </Link>
+                  </div>
+                </div>
               </div>
+
+              {/* Image Column */}
+              <div className="hero-image-col">
+                <div className="hero-image-wrapper reveal-image" style={{ animationDelay: '1.3s' }}>
+                  <Image 
+                    src="/images/01-hammock-facade-hero.jpg" 
+                    alt="Hammock Facade"
+                    fill
+                    priority
+                    fetchPriority="high"
+                    style={{ 
+                      objectFit: 'cover', 
+                      objectPosition: '50% 30%', 
+                      borderRadius: 'var(--radius-xl)'
+                    }}
+                  />
+                  
+                </div>
+              </div>
+
             </div>
           </div>
         </section>

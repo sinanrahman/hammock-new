@@ -1,25 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { scrollY } = useScroll();
+  const lastYRef = useRef(0);
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const diff = y - lastYRef.current;
+    if (y > 100 && diff > 10) {
+      setHidden(true);
+    } else if (diff < -10 || y <= 50) {
+      setHidden(false);
+    }
+    lastYRef.current = y;
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -28,6 +32,24 @@ export default function Header() {
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setMobileMenuOpen(false);
+      };
+      document.addEventListener('keydown', handleEscape);
+      const currentButton = buttonRef.current;
+      return () => {
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', handleEscape);
+        currentButton?.focus();
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [mobileMenuOpen]);
+
   const navLinks = [
     { label: 'Rooms & Suites', href: '/rooms' },
     { label: 'Amenities', href: '/amenities' },
@@ -35,43 +57,52 @@ export default function Header() {
     { label: 'FAQ', href: '/faq' },
   ];
 
-  const headerStyle = {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    transition: 'all 0.3s ease',
-    padding: '1.5rem 0',
-    backgroundColor: scrolled ? 'var(--hammock-cream)' : 'transparent',
-    color: scrolled || !isHome ? 'var(--hammock-burgundy)' : 'var(--hammock-cream)',
-    boxShadow: scrolled ? '0 1px 10px rgba(0,0,0,0.05)' : 'none',
-  };
+  const mobileNavLinks = [
+    { label: 'Home', href: '/' },
+    ...navLinks,
+    { label: 'Contact', href: '/contact' },
+  ];
 
   return (
     <>
-      <header style={headerStyle}>
+      <motion.header 
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: hidden ? -100 : 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          padding: '1.5rem 0',
+          backgroundColor: scrollY.get() > 50 ? 'rgba(245, 235, 213, 0.95)' : 'transparent',
+          backdropFilter: scrollY.get() > 50 ? 'blur(10px)' : 'none',
+          color: 'var(--hammock-burgundy)',
+        }}
+      >
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center' }} aria-label="Hammock Home">
+            <Link href="/" aria-label="Hammock Home" style={{ display: 'flex', alignItems: 'center' }}>
               <Image 
-                src={scrolled || !isHome ? "/brand/hammock-wordmark.png" : "/brand/hammock-wordmark.png"} 
+                src="/hammock-wordmark.png" 
                 alt="Hammock" 
-                width={120} 
-                height={28} 
+                width={140} 
+                height={24} 
                 style={{ 
                   objectFit: 'contain',
-                  filter: scrolled || !isHome ? 'none' : 'brightness(0) invert(1) brightness(0.95) sepia(1) hue-rotate(345deg) saturate(2) contrast(0.8)' // Attempting to make it cream-like if needed, but original wordmark is burgundy. Actually, let's use CSS filter for cream if not scrolled on home. Wait, the instructions didn't provide a cream wordmark. Daylight navigation on home uses light text. We can use filter or just stick to the image.
+                  height: 'auto'
                 }}
+                priority
               />
             </Link>
           </div>
 
-          <nav style={{ display: 'none' }} className="desktop-nav">
+          <nav className="desktop-nav" style={{ display: 'none' }}>
             <ul style={{ display: 'flex', gap: '2rem', listStyle: 'none', alignItems: 'center', margin: 0, padding: 0 }}>
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} style={{ fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  <Link href={link.href} className="nav-link">
                     {link.label}
                   </Link>
                 </li>
@@ -79,88 +110,108 @@ export default function Header() {
             </ul>
           </nav>
 
-          <div style={{ flex: 1, display: 'none', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }} className="desktop-nav">
-            <Link href="/contact" style={{ fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-              Contact
-            </Link>
-            <Link href="/rooms" className={`btn ${scrolled || !isHome ? 'btn-primary' : ''}`} style={{
-              backgroundColor: scrolled || !isHome ? 'var(--hammock-burgundy)' : 'var(--hammock-cream)',
-              color: scrolled || !isHome ? 'var(--hammock-cream)' : 'var(--hammock-burgundy)',
-            }}>
+          <div className="desktop-nav" style={{ flex: 1, display: 'none', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <Link href="/contact" className="btn btn-primary cta-btn">
               Book a Stay
             </Link>
           </div>
 
           <button 
+            ref={buttonRef}
             className="mobile-toggle"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
-            style={{ color: 'inherit' }}
+            aria-expanded={mobileMenuOpen}
+            style={{ 
+              color: 'inherit',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              width: '24px',
+              height: '14px',
+              position: 'relative',
+              zIndex: 1001
+            }}
           >
-            <Menu size={24} />
+            <span style={{ width: '100%', height: '2px', backgroundColor: 'currentColor', transition: '0.3s' }}></span>
+            <span style={{ width: '100%', height: '2px', backgroundColor: 'currentColor', transition: '0.3s' }}></span>
           </button>
         </div>
-      </header>
+      </motion.header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: '-100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '-100%' }}
-            transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
+            ref={menuRef}
+            initial={{ clipPath: 'inset(0 0 100% 0)' }}
+            animate={{ clipPath: 'inset(0 0 0% 0)' }}
+            exit={{ clipPath: 'inset(0 0 100% 0)' }}
+            transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'var(--hammock-burgundy)',
-              color: 'var(--hammock-cream)',
+              backgroundColor: 'var(--hammock-cream)',
+              color: 'var(--hammock-burgundy)',
               zIndex: 1000,
               display: 'flex',
               flexDirection: 'column',
+              overflowY: 'auto'
             }}
           >
-            <div className="container" style={{ padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Image src="/brand/h-mark-exact.png" alt="Hammock" width={40} height={40} style={{ filter: 'brightness(0) invert(1)' }} />
-              <button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu" style={{ color: 'inherit' }}>
-                <X size={32} />
+            <div className="container" style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '72px' }}>
+              <div style={{ flex: 1 }}>
+                <Image 
+                  src="/hammock-wordmark.png" 
+                  alt="Hammock" 
+                  width={140} 
+                  height={24} 
+                  style={{ objectFit: 'contain', height: 'auto' }} 
+                />
+              </div>
+              <button 
+                onClick={() => setMobileMenuOpen(false)} 
+                aria-label="Close menu" 
+                style={{ 
+                  color: 'inherit',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px',
+                  position: 'relative'
+                }}
+              >
+                <span style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: 'currentColor', transform: 'rotate(45deg)' }}></span>
+                <span style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: 'currentColor', transform: 'rotate(-45deg)' }}></span>
               </button>
             </div>
             
-            <div className="container" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 2rem' }}>
+            <div className="container" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: '4rem' }}>
               <nav>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                  {navLinks.map((link) => (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {mobileNavLinks.map((link, i) => (
                     <motion.li 
                       key={link.href}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.2 + (i * 0.05), duration: 0.5 }}
                     >
-                      <Link href={link.href} style={{ fontSize: '2rem', fontFamily: 'var(--font-cormorant)' }} onClick={() => setMobileMenuOpen(false)}>
+                      <Link href={link.href} style={{ fontSize: '2.5rem', fontFamily: 'var(--hammock-display)', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
                         {link.label}
                       </Link>
                     </motion.li>
                   ))}
-                  <motion.li
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <Link href="/contact" style={{ fontSize: '2rem', fontFamily: 'var(--font-cormorant)' }} onClick={() => setMobileMenuOpen(false)}>
-                      Contact
-                    </Link>
-                  </motion.li>
                 </ul>
               </nav>
               
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
-                transition={{ delay: 0.5 }}
-                style={{ marginTop: '4rem' }}
+                transition={{ delay: 0.6 }}
+                style={{ marginTop: '3rem' }}
               >
-                <Link href="/rooms" className="btn btn-primary" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)', width: '100%' }} onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/contact" className="btn btn-primary" style={{ width: '100%', padding: '1.25rem' }} onClick={() => setMobileMenuOpen(false)}>
                   Book a Stay
                 </Link>
               </motion.div>
@@ -170,6 +221,20 @@ export default function Header() {
       </AnimatePresence>
 
       <style jsx global>{`
+        .nav-link {
+          font-size: 0.875rem;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          transition: opacity 0.2s ease;
+        }
+        .nav-link:hover {
+          opacity: 0.7;
+        }
+        .cta-btn {
+          border: 1px solid var(--hammock-burgundy);
+          padding: 0.6rem 1.5rem;
+          font-size: 0.875rem;
+        }
         @media (min-width: 1024px) {
           .desktop-nav {
             display: flex !important;
