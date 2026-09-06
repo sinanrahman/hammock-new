@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { usePreloader } from './PreloaderContext';
+import { createWhatsAppUrl, getGeneralBookingMessage } from '../../lib/whatsapp';
 
 export default function Header() {
   const [hidden, setHidden] = useState(false);
@@ -54,15 +55,14 @@ export default function Header() {
 
   const navLinks = [
     { label: 'Rooms & Suites', href: '/rooms' },
-    { label: 'Amenities', href: '/amenities' },
     { label: 'About', href: '/about' },
     { label: 'FAQ', href: '/faq' },
+    { label: 'Contact', href: '/contact' },
   ];
 
   const mobileNavLinks = [
     { label: 'Home', href: '/' },
     ...navLinks,
-    { label: 'Contact', href: '/contact' },
   ];
 
   return (
@@ -113,9 +113,9 @@ export default function Header() {
           </nav>
 
           <div className="desktop-nav" style={{ flex: 1, display: 'none', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <Link href="/contact" className="btn btn-primary cta-btn">
+            <a href={createWhatsAppUrl(getGeneralBookingMessage())} target="_blank" rel="noopener noreferrer" className="btn btn-primary cta-btn">
               Book a Stay
-            </Link>
+            </a>
           </div>
 
           <button 
@@ -213,9 +213,9 @@ export default function Header() {
                 transition={{ delay: 0.6 }}
                 style={{ marginTop: '3rem' }}
               >
-                <Link href="/contact" className="btn btn-primary" style={{ width: '100%', padding: '1.25rem' }} onClick={() => setMobileMenuOpen(false)}>
+                <a href={createWhatsAppUrl(getGeneralBookingMessage())} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: '100%', padding: '1.25rem', display: 'block', textAlign: 'center', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
                   Book a Stay
-                </Link>
+                </a>
               </motion.div>
             </div>
           </motion.div>

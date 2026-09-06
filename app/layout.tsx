@@ -17,6 +17,7 @@ const inter = Inter({
 });
 
 import { ClientProvider } from "./components/ClientProvider";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 export const metadata: Metadata = {
   title: "HAMMOCK Suites and Rooms",
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ClientProvider>
           {children}
+          <FloatingWhatsApp />
         </ClientProvider>
       </body>
     </html>

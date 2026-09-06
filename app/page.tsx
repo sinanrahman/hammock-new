@@ -11,6 +11,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { motion } from 'framer-motion';
+import { createWhatsAppUrl, getGeneralBookingMessage } from '../lib/whatsapp';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -236,14 +237,14 @@ export default function Home() {
                     animate={preloaderFinished ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <Link href="/contact" className="btn btn-primary" style={{ 
+                    <a href={createWhatsAppUrl(getGeneralBookingMessage())} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ 
                       padding: '1.25rem 2.5rem',
                       fontSize: '1rem',
                       borderRadius: '999px',
                       display: 'inline-flex'
                     }}>
                       Book a stay
-                    </Link>
+                    </a>
                   </motion.div>
                 </div>
               </div>
@@ -427,9 +428,9 @@ export default function Home() {
           <div className="container" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Image src="/h-mark-cream.svg" alt="" width={48} height={48} style={{ marginBottom: '2rem' }} />
             <h2 className="text-display" style={{ marginBottom: '3rem' }}>Stay. Unwind. Repeat.</h2>
-            <Link href="/rooms" className="btn" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)', padding: '1rem 3rem', fontSize: '1rem' }}>
+            <a href={createWhatsAppUrl(getGeneralBookingMessage())} target="_blank" rel="noopener noreferrer" className="btn" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)', padding: '1rem 3rem', fontSize: '1rem', textDecoration: 'none', display: 'inline-block', borderRadius: '999px' }}>
               Book your stay
-            </Link>
+            </a>
           </div>
         </section>
       </main>

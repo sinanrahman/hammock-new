@@ -20,7 +20,6 @@ export default function Footer() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h4 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', fontFamily: 'var(--font-inter)' }}>Stay</h4>
             <Link href="/rooms" style={{ opacity: 0.8, transition: 'opacity 0.3s' }}>Rooms & Suites</Link>
-            <Link href="/amenities" style={{ opacity: 0.8, transition: 'opacity 0.3s' }}>Amenities</Link>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
