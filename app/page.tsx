@@ -36,37 +36,53 @@ export default function Home() {
     
     mm.add("(min-width: 1024px)", () => {
       // Features Pinning
-      const features = gsap.utils.toArray('.feature-item') as HTMLElement[];
-      if (features.length > 0 && featuresSectionRef.current) {
+      const imgLayers = gsap.utils.toArray('.feature-img-layer') as HTMLElement[];
+      const textLayers = gsap.utils.toArray('.feature-text-layer') as HTMLElement[];
+      const indicators = gsap.utils.toArray('.feature-indicator') as HTMLElement[];
+
+      if (imgLayers.length > 0 && featuresSectionRef.current) {
         ScrollTrigger.create({
           trigger: featuresSectionRef.current,
-          start: "top top+=100", // Start pinning slightly below header
-          end: "+=2000", // Scroll duration for 3 items
+          start: "top top+=80",
+          end: "+=3000",
           pin: true,
           scrub: 1,
+          anticipatePin: 1
         });
 
-        // Animate feature items inside the pinned container
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: featuresSectionRef.current,
-            start: "top top+=100",
-            end: "+=2000",
+            start: "top top+=80",
+            end: "+=3000",
             scrub: 1,
           }
         });
 
-        // Start with first item visible, others hidden
-        gsap.set(features.slice(1), { autoAlpha: 0, scale: 0.95 });
-        
-        features.forEach((feature, i) => {
-          if (i > 0) {
-            // Fade out previous
-            tl.to(features[i - 1], { autoAlpha: 0, scale: 0.95, duration: 1, ease: "power2.inOut" }, `step${i}`)
-              // Fade in current
-              .to(feature, { autoAlpha: 1, scale: 1, duration: 1, ease: "power2.inOut" }, `step${i}`);
-          }
-        });
+        // Initialize states
+        gsap.set(imgLayers.slice(1), { clipPath: 'inset(100% 0 0 0)' });
+        gsap.set(textLayers.slice(1), { opacity: 0, y: 28 });
+        gsap.set(indicators.slice(1), { opacity: 0.4 });
+        gsap.set(indicators[0], { opacity: 1 });
+
+        // Step 1 to 2
+        tl.to(textLayers[0], { opacity: 0, y: -28, duration: 1, ease: "power2.inOut" }, "step1")
+          .to(indicators[0], { opacity: 0.4, duration: 0.5 }, "step1")
+          .fromTo(imgLayers[1], { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1, ease: "power2.inOut" }, "step1")
+          .fromTo(imgLayers[1].querySelector('img'), { scale: 1.04 }, { scale: 1, duration: 1, ease: "power2.out" }, "step1")
+          .to(textLayers[1], { opacity: 1, y: 0, duration: 1, ease: "power2.inOut" }, "step1+=0.2")
+          .to(indicators[1], { opacity: 1, duration: 0.5 }, "step1+=0.5");
+
+        // Hold
+        tl.to({}, { duration: 0.5 });
+
+        // Step 2 to 3
+        tl.to(textLayers[1], { opacity: 0, y: -28, duration: 1, ease: "power2.inOut" }, "step2")
+          .to(indicators[1], { opacity: 0.4, duration: 0.5 }, "step2")
+          .fromTo(imgLayers[2], { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1, ease: "power2.inOut" }, "step2")
+          .fromTo(imgLayers[2].querySelector('img'), { scale: 1.04 }, { scale: 1, duration: 1, ease: "power2.out" }, "step2")
+          .to(textLayers[2], { opacity: 1, y: 0, duration: 1, ease: "power2.inOut" }, "step2+=0.2")
+          .to(indicators[2], { opacity: 1, duration: 0.5 }, "step2+=0.5");
       }
 
       // How it Works Parallax/Step progression
@@ -261,46 +277,51 @@ export default function Home() {
         </section>
 
         {/* Features Section Desktop (Pinned) */}
-        <section ref={featuresSectionRef} className="desktop-features" style={{ padding: 'var(--spacing-24) 0', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-          <div className="container" style={{ height: '100%' }}>
-            
-            {/* Base item */}
-            <div className="feature-item" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 var(--spacing-16)' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center', width: '100%' }}>
-                <div style={{ flex: '1 1 500px', position: 'relative', height: '60vh', minHeight: '400px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
+        <section ref={featuresSectionRef} className="desktop-features" style={{ padding: 'var(--spacing-24) 0', height: '100vh', display: 'flex', alignItems: 'center' }}>
+          <div className="container" style={{ width: '100%' }}>
+            <div style={{ display: 'flex', gap: '8%', alignItems: 'center' }}>
+              
+              {/* Left: Shared Image Viewport */}
+              <div style={{ flex: '0 0 56%', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+                <div className="feature-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+                  <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="(max-width: 1024px) 100vw, 56vw" style={{ objectFit: 'cover' }} />
                 </div>
-                <div style={{ flex: '1 1 300px' }}>
+                <div className="feature-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+                  <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="(max-width: 1024px) 100vw, 56vw" style={{ objectFit: 'cover' }} />
+                </div>
+                <div className="feature-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 3 }}>
+                  <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="(max-width: 1024px) 100vw, 56vw" style={{ objectFit: 'cover' }} />
+                </div>
+              </div>
+
+              {/* Right: Shared Text Viewport */}
+              <div style={{ flex: '1', position: 'relative', height: '240px' }}>
+                
+                <div className="feature-text-layer" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Stay</span>
-                  <h2 className="text-h3" style={{ marginTop: '1rem' }}>Rooms made for real rest</h2>
+                  <h2 className="text-h3" style={{ marginTop: '1rem', fontFamily: 'var(--hammock-display)' }}>Rooms made for real rest</h2>
                 </div>
-              </div>
-            </div>
-
-            <div className="feature-item" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 var(--spacing-16)' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center', width: '100%' }}>
-                <div style={{ flex: '1 1 500px', position: 'relative', height: '60vh', minHeight: '400px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: '1 1 300px' }}>
+                
+                <div className="feature-text-layer" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Move</span>
-                  <h2 className="text-h3" style={{ marginTop: '1rem' }}>A private gym, ready when you are</h2>
+                  <h2 className="text-h3" style={{ marginTop: '1rem', fontFamily: 'var(--hammock-display)' }}>A private gym, ready when you are</h2>
                 </div>
-              </div>
-            </div>
-
-            <div className="feature-item" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 var(--spacing-16)' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center', width: '100%' }}>
-                <div style={{ flex: '1 1 500px', position: 'relative', height: '60vh', minHeight: '400px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: '1 1 300px' }}>
+                
+                <div className="feature-text-layer" style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Meet</span>
-                  <h2 className="text-h3" style={{ marginTop: '1rem' }}>A conference room that means business</h2>
+                  <h2 className="text-h3" style={{ marginTop: '1rem', fontFamily: 'var(--hammock-display)' }}>A conference room that means business</h2>
                 </div>
-              </div>
-            </div>
 
+                {/* Progress Indicators */}
+                <div style={{ position: 'absolute', bottom: '-40px', left: 0, display: 'flex', gap: '0.75rem' }}>
+                  <div className="feature-indicator" style={{ width: '24px', height: '2px', backgroundColor: 'var(--hammock-burgundy)' }} />
+                  <div className="feature-indicator" style={{ width: '24px', height: '2px', backgroundColor: 'var(--hammock-burgundy)' }} />
+                  <div className="feature-indicator" style={{ width: '24px', height: '2px', backgroundColor: 'var(--hammock-burgundy)' }} />
+                </div>
+
+              </div>
+              
+            </div>
           </div>
         </section>
 
@@ -310,29 +331,29 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-16)' }}>
               <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="100vw" style={{ objectFit: 'cover' }} />
+                  <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
                 </div>
                 <div>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Stay</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem' }}>Rooms made for real rest</h2>
+                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>Rooms made for real rest</h2>
                 </div>
               </div>
               <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="100vw" style={{ objectFit: 'cover' }} />
+                  <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
                 </div>
                 <div>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Move</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem' }}>A private gym, ready when you are</h2>
+                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>A private gym, ready when you are</h2>
                 </div>
               </div>
               <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="100vw" style={{ objectFit: 'cover' }} />
+                  <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
                 </div>
                 <div>
                   <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Meet</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem' }}>A conference room that means business</h2>
+                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>A conference room that means business</h2>
                 </div>
               </div>
             </div>

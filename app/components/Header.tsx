@@ -87,7 +87,7 @@ export default function Header() {
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
             <Link href="/" aria-label="Hammock Home" style={{ display: 'flex', alignItems: 'center' }}>
               <Image 
-                src="/hammock-wordmark.png" 
+                src="/logo.png" 
                 alt="Hammock" 
                 width={140} 
                 height={24} 
@@ -164,7 +164,7 @@ export default function Header() {
             <div className="container" style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '72px' }}>
               <div style={{ flex: 1 }}>
                 <Image 
-                  src="/hammock-wordmark.png" 
+                  src="/logo.png" 
                   alt="Hammock" 
                   width={140} 
                   height={24} 
