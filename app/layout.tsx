@@ -16,6 +16,8 @@ const inter = Inter({
   display: "swap",
 });
 
+import { ClientProvider } from "./components/ClientProvider";
+
 export const metadata: Metadata = {
   title: "HAMMOCK Suites and Rooms",
   description: "A calm, contemporary stay with considered rooms, thoughtful comfort, a private gym, and space to meet.",
@@ -38,7 +40,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
       <body className="antialiased">
-        {children}
+        <ClientProvider>
+          {children}
+        </ClientProvider>
       </body>
     </html>
   );

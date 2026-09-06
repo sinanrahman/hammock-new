@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { usePreloader } from './PreloaderContext';
 
 export default function Header() {
   const [hidden, setHidden] = useState(false);
@@ -14,6 +15,7 @@ export default function Header() {
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const { preloaderFinished } = usePreloader();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const diff = y - lastYRef.current;
@@ -67,8 +69,8 @@ export default function Header() {
     <>
       <motion.header 
         initial={{ y: -100, opacity: 0 }}
-        animate={{ y: hidden ? -100 : 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
+        animate={{ y: !preloaderFinished || hidden ? -100 : 0, opacity: preloaderFinished ? 1 : 0 }}
+        transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
         style={{
           position: 'fixed',
           top: 0,
