@@ -1,26 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { usePreloader } from './PreloaderContext';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
 
 export default function Preloader() {
   const [show, setShow] = useState(true);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { setPreloaderFinished } = usePreloader();
+  const container = useRef<HTMLDivElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
+    setMounted(true);
     const hasVisited = sessionStorage.getItem('hammock_visited');
     
     if (!hasVisited) {
-      setTimeout(() => setIsFirstVisit(true), 0);
+      setIsFirstVisit(true);
       sessionStorage.setItem('hammock_visited', 'true');
       
+      // Prevent scrolling while preloader is active
+      document.body.style.overflow = 'hidden';
+      
       const startTime = Date.now();
-      const minDuration = 1000;
+      const minDuration = 400; // Hold briefly (200ms logo fade in + 200ms hold)
       const maxDuration = 4000;
 
       const loadPromise = Promise.all([
@@ -40,93 +51,157 @@ export default function Preloader() {
         const remaining = Math.max(0, minDuration - elapsed);
         
         setTimeout(() => {
-          setShow(false);
+          // Trigger the exit animation
+          if (tlRef.current) {
+            tlRef.current.play();
+          } else {
+            // Fallback if GSAP is not ready
+            setShow(false);
+            setPreloaderFinished(true);
+            document.body.style.overflow = '';
+          }
         }, remaining);
       });
       
-      // Prevent scrolling while preloader is active
-      document.body.style.overflow = 'hidden';
-      
-      return () => {
-        document.body.style.overflow = '';
-      };
     } else {
-      setTimeout(() => {
-        setShow(false);
-        setPreloaderFinished(true);
-      }, 0);
+      setShow(false);
+      setPreloaderFinished(true);
     }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [setPreloaderFinished]);
 
-  useEffect(() => {
-    if (!show && !isFirstVisit) {
-      document.body.style.overflow = '';
+  useGSAP(() => {
+    if (!isFirstVisit) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const tl = gsap.timeline({
+      paused: true,
+      onStart: () => {
+        // Start the hero animations underneath when panels begin to retract
+        setPreloaderFinished(true);
+      },
+      onComplete: () => {
+        setShow(false);
+        document.body.style.overflow = '';
+        ScrollTrigger.refresh(); // Refresh scroll measurements once overlay is removed
+      }
+    });
+
+    tlRef.current = tl;
+
+    // Logo entrance
+    gsap.fromTo('.preloader-logo', 
+      { opacity: 0 }, 
+      { opacity: 1, duration: 0.2, ease: 'none' }
+    );
+
+    if (prefersReducedMotion) {
+      tl.to('.preloader-overlay', { opacity: 0, duration: 0.5, ease: 'power2.inOut' });
+    } else {
+      // 1. Fade out logo
+      tl.to('.preloader-logo', { opacity: 0, duration: 0.18, ease: 'power2.inOut' });
+      
+      // 2. Stagger panels up
+      const visiblePanels = gsap.utils.toArray('.preloader-panel').filter(
+        (el) => window.getComputedStyle(el as Element).display !== 'none'
+      );
+      
+      tl.to(visiblePanels, {
+        yPercent: -100,
+        duration: 0.8,
+        ease: 'power2.inOut',
+        stagger: 0.085
+      }, "-=0.05"); // Start slightly before logo finishes fading
     }
-  }, [show, isFirstVisit]);
+  }, { scope: container, dependencies: [isFirstVisit] });
+
+  // Safety cleanup for overflow
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   if (mounted && !isFirstVisit) return null;
 
+  if (!show) return null;
+
   return (
-    <AnimatePresence onExitComplete={() => {
-      document.body.style.overflow = '';
-      setPreloaderFinished(true);
-    }}>
-      {show && (
-        <motion.div
-          aria-hidden="true"
-          exit={{ clipPath: 'inset(100% 0 0 0)' }}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-          style={{ 
-            backgroundColor: 'var(--hammock-cream)',
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'auto',
-            clipPath: 'inset(0 0 0 0)'
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0.94, scale: 0.94 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1 
-            }}
-            transition={{ 
-              duration: 1.2, 
-              ease: "easeOut",
-            }}
-            className="preloader-logo"
-          >
-            <Image 
-              src="/h-mark-exact.png" 
-              alt="Hammock" 
-              width={120} 
-              height={120}
-              priority
-              style={{ width: '100%', height: 'auto', maxWidth: '120px' }}
-            />
-          </motion.div>
-          <style jsx>{`
-            .preloader-logo {
-              width: 88px;
-            }
-            @media (min-width: 768px) {
-              .preloader-logo {
-                width: 120px;
-              }
-            }
-            @media (prefers-reduced-motion: reduce) {
-              .preloader-logo {
-                transition: none !important;
-                animation: none !important;
-              }
-            }
-          `}</style>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div 
+      ref={container}
+      className="preloader-overlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        pointerEvents: 'auto',
+      }}
+    >
+      {/* Background panels */}
+      <div className="panels-container">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className={`preloader-panel panel-${i}`} />
+        ))}
+      </div>
+
+      {/* Foreground logo container */}
+      <div className="logo-container">
+        <div className="preloader-logo" style={{ opacity: 0 }}>
+          <Image 
+            src="/h-mark-cream.svg" 
+            alt="Hammock" 
+            width={64} 
+            height={64}
+            priority
+            className="h-mark-img"
+          />
+        </div>
+      </div>
+
+      <style jsx>{`
+        .panels-container {
+          position: absolute;
+          inset: 0;
+          display: flex;
+        }
+        .preloader-panel {
+          flex: 1;
+          background-color: var(--hammock-burgundy);
+          height: 100%;
+          will-change: transform;
+          margin-right: -1px; /* Tiny overlap to prevent hairline gaps */
+        }
+        .preloader-panel:last-child {
+          margin-right: 0;
+        }
+        .logo-container {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        }
+        .h-mark-img {
+          width: 48px;
+          height: auto;
+        }
+        @media (min-width: 768px) {
+          .h-mark-img {
+            width: 64px;
+          }
+        }
+        @media (max-width: 767px) {
+          /* Render only 5 panels on mobile */
+          .panel-5, .panel-6, .panel-7 {
+            display: none;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
