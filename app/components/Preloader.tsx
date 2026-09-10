@@ -27,8 +27,12 @@ export default function Preloader() {
       setIsFirstVisit(true);
       sessionStorage.setItem('hammock_visited', 'true');
       
-      // Prevent scrolling while preloader is active
+      // Calculate scrollbar width to prevent horizontal layout shift
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
       
       const startTime = Date.now();
       const minDuration = 400; // Hold briefly (200ms logo fade in + 200ms hold)
@@ -59,6 +63,7 @@ export default function Preloader() {
             setShow(false);
             setPreloaderFinished(true);
             document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
           }
         }, remaining);
       });
@@ -70,6 +75,7 @@ export default function Preloader() {
     
     return () => {
       document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
     };
   }, [setPreloaderFinished]);
 
@@ -80,13 +86,10 @@ export default function Preloader() {
 
     const tl = gsap.timeline({
       paused: true,
-      onStart: () => {
-        // Start the hero animations underneath when panels begin to retract
-        setPreloaderFinished(true);
-      },
       onComplete: () => {
         setShow(false);
         document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
         ScrollTrigger.refresh(); // Refresh scroll measurements once overlay is removed
       }
     });
@@ -100,34 +103,39 @@ export default function Preloader() {
     );
 
     if (prefersReducedMotion) {
+      tl.add(() => setPreloaderFinished(true), 0);
       tl.to('.preloader-overlay', { opacity: 0, duration: 0.5, ease: 'power2.inOut' });
     } else {
       // 1. Fade out logo
       tl.to('.preloader-logo', { opacity: 0, duration: 0.18, ease: 'power2.inOut' });
       
+      // Trigger hero animation underneath slightly before panels retract
+      // This avoids heavy React re-renders dropping frames on the exact start of the GSAP animation
+      tl.add(() => setPreloaderFinished(true), "-=0.1");
+      
       // 2. Stagger panels up
-      const visiblePanels = gsap.utils.toArray('.preloader-panel').filter(
-        (el) => window.getComputedStyle(el as Element).display !== 'none'
-      );
+      const isMobile = window.innerWidth < 768;
+      const allPanels = gsap.utils.toArray('.preloader-panel');
+      const visiblePanels = isMobile ? allPanels.slice(0, 5) : allPanels;
       
       tl.to(visiblePanels, {
-        yPercent: -100,
+        yPercent: -101, // Over-extend slightly to ensure no 1px subpixel bleeding at the top edge
         duration: 0.8,
         ease: 'power2.inOut',
         stagger: 0.085
-      }, "-=0.05"); // Start slightly before logo finishes fading
+      }, "-=0.05");
     }
   }, { scope: container, dependencies: [isFirstVisit] });
 
-  // Safety cleanup for overflow
+  // Safety cleanup
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
     };
   }, []);
 
   if (mounted && !isFirstVisit) return null;
-
   if (!show) return null;
 
   return (
@@ -144,7 +152,11 @@ export default function Preloader() {
       {/* Background panels */}
       <div className="panels-container">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className={`preloader-panel panel-${i}`} />
+          <div 
+            key={i} 
+            className={`preloader-panel panel-${i} bg-burgundy`} 
+            style={{ backgroundColor: 'var(--hammock-burgundy)' }}
+          />
         ))}
       </div>
 
