@@ -24,15 +24,12 @@ export default function Home() {
   // Ref hooks for sections
   const featuresSectionRef = useRef<HTMLElement>(null);
   const howItWorksRef = useRef<HTMLElement>(null);
-  const storyRef = useRef<HTMLElement>(null);
-  const finalCtaRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
     // Only run scroll animations if reduced motion is not preferred
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    // Feature Section Desktop Pinning
     const mm = gsap.matchMedia();
     
     mm.add("(min-width: 1024px)", () => {
@@ -110,38 +107,6 @@ export default function Home() {
           }
         });
       }
-
-      // Story Reveal Parallax
-      if (storyRef.current) {
-        const storyImage = storyRef.current.querySelector('.story-image');
-        gsap.to(storyImage, {
-          y: "8%",
-          ease: "none",
-          scrollTrigger: {
-            trigger: storyRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          }
-        });
-      }
-
-      // Final CTA Transition
-      if (finalCtaRef.current) {
-        gsap.fromTo(finalCtaRef.current, 
-          { clipPath: "inset(20% 10% 0% 10% round var(--radius-xl))" },
-          { 
-            clipPath: "inset(0% 0% 0% 0% round 0px)",
-            ease: "power2.inOut",
-            scrollTrigger: {
-              trigger: finalCtaRef.current,
-              start: "top bottom",
-              end: "top center",
-              scrub: 1
-            }
-          }
-        );
-      }
     });
 
     mm.add("(max-width: 1023px)", () => {
@@ -164,13 +129,20 @@ export default function Home() {
     return () => mm.revert();
   }, { scope: container });
 
+  const getRoomBookingUrl = (roomName: string) => {
+    return `https://wa.me/918547731887?text=${encodeURIComponent(`Hello HAMMOCK Suites & Rooms, I would like to enquire about booking ${roomName}. Please share availability and booking details.`)}`;
+  };
+
+  const bookingMessage = "Hello HAMMOCK Suites & Rooms,\n\nI would like to enquire about booking a stay. Please share room availability and booking details.";
+  const bookingUrl = `https://wa.me/918547731887?text=${encodeURIComponent(bookingMessage)}`;
+
   return (
     <div ref={container}>
       <Preloader />
       <Header />
       
       <main>
-        {/* Hero Section */}
+        {/* 1. Hero Section */}
         <section style={{ 
           position: 'relative', 
           minHeight: '100svh', 
@@ -277,7 +249,36 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section Desktop (Pinned) */}
+        {/* 2. New welcome section */}
+        <section style={{ padding: 'var(--spacing-24) 0', backgroundColor: 'var(--hammock-cream)' }}>
+          <div className="container">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
+              <div style={{ flex: '1 1 400px' }}>
+                <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>WELCOME TO HAMMOCK</span>
+                <h2 className="text-h2" style={{ marginTop: '1rem', marginBottom: '2rem', fontFamily: 'var(--hammock-display)' }}>A thoughtful stay, made to feel effortless.</h2>
+                <p className="text-body-lg" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>
+                  HAMMOCK Suites & Rooms brings together calm interiors, considered comfort and warm hospitality for stays that feel easy from the moment you arrive.
+                </p>
+                <p className="text-body" style={{ marginBottom: '2.5rem', opacity: 0.8 }}>
+                  Whether you are visiting for a short break, travelling with family or staying a little longer, our spaces are designed to help you settle in and feel at ease.
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <Link href="/about" className="btn btn-primary" style={{ padding: '1rem 2rem', borderRadius: '999px', display: 'inline-flex' }}>
+                    Discover HAMMOCK
+                  </Link>
+                  <a href="https://wa.me/918547731887?text=Hello%20HAMMOCK%20Suites%20%26%20Rooms%2C%20I%20would%20like%20to%20know%20more%20about%20your%20rooms%20and%20stay%20options." target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '1rem 2rem', borderRadius: '999px', display: 'inline-flex', border: '1px solid var(--hammock-burgundy)', color: 'var(--hammock-burgundy)' }}>
+                    Send a Message
+                  </a>
+                </div>
+              </div>
+              <div style={{ flex: '1 1 500px', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+                <Image src="/images/about-story.jpeg" alt="Hammock Interior" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. Features Section Desktop (Pinned) */}
         <section ref={featuresSectionRef} className="desktop-features" style={{ padding: 'var(--spacing-24) 0', height: '100vh', display: 'flex', alignItems: 'center' }}>
           <div className="container" style={{ width: '100%' }}>
             <div style={{ display: 'flex', gap: '8%', alignItems: 'center' }}>
@@ -361,7 +362,70 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How it works */}
+        {/* 4. New hospitality introduction */}
+        <section style={{ padding: 'var(--spacing-24) 0', backgroundColor: 'var(--hammock-cream)' }}>
+          <div className="container">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'flex-start' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>THE HAMMOCK EXPERIENCE</span>
+                <h2 className="text-h2" style={{ marginTop: '1rem', fontFamily: 'var(--hammock-display)' }}>Make your stay truly comfortable.</h2>
+              </div>
+              <div style={{ flex: '1 1 400px' }}>
+                <Image src="/h-mark-cream.svg" alt="" width={32} height={32} style={{ opacity: 0.2, marginBottom: '1.5rem', filter: 'brightness(0) saturate(100%) invert(10%) sepia(45%) saturate(3620%) hue-rotate(334deg) brightness(97%) contrast(100%)' }} />
+                <p className="text-body-lg" style={{ marginBottom: '1.5rem', opacity: 0.9 }}>
+                  Every part of HAMMOCK is shaped around a simple purpose: helping guests feel comfortable, welcomed and unhurried.
+                </p>
+                <p className="text-body" style={{ opacity: 0.8 }}>
+                  From restful rooms and thoughtful shared spaces to a private gym and conference facilities, everything you need is brought together under one roof.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. New rooms preview */}
+        <section style={{ padding: 'var(--spacing-24) 0' }}>
+          <div className="container">
+            <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto var(--spacing-16)' }}>
+              <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>ROOMS & SUITES</span>
+              <h2 className="text-h2" style={{ marginTop: '1rem', marginBottom: '1.5rem', fontFamily: 'var(--hammock-display)' }}>Spaces designed around the way you stay.</h2>
+              <p className="text-body-lg" style={{ opacity: 0.9 }}>
+                Explore comfortable rooms and suites created for short visits, longer stays, families and guests who appreciate a little more space to unwind.
+              </p>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', marginBottom: 'var(--spacing-16)' }}>
+              {[
+                { id: 'room-1', name: 'Room 01', image: '/images/rooms/room-1.jpg' },
+                { id: 'room-2', name: 'Room 02', image: '/images/rooms/room-2.jpg' },
+                { id: 'room-3', name: 'Room 03', image: '/images/rooms/room-3.jpg' }
+              ].map((room) => (
+                <div key={room.id} style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'relative', paddingBottom: '75%', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                    <Image src={room.image} alt={room.name} fill sizes="(max-width: 768px) 100vw, 33vw" style={{ objectFit: 'cover' }} />
+                  </div>
+                  <h3 className="text-h4" style={{ fontFamily: 'var(--hammock-display)', marginBottom: '1rem' }}>{room.name}</h3>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
+                    <Link href={`/rooms/${room.id}`} style={{ fontWeight: 500, borderBottom: '1px solid var(--hammock-burgundy)', paddingBottom: '0.25rem', fontSize: '0.9375rem' }}>
+                      View room
+                    </Link>
+                    <a href={getRoomBookingUrl(room.name)} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 500, borderBottom: '1px solid var(--hammock-rose)', color: 'var(--hammock-rose)', paddingBottom: '0.25rem', fontSize: '0.9375rem' }}>
+                      Book this room
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <Link href="/rooms" className="btn btn-secondary" style={{ padding: '1rem 2.5rem', borderRadius: '999px', display: 'inline-flex', border: '1px solid var(--hammock-burgundy)', color: 'var(--hammock-burgundy)' }}>
+                Explore All Rooms
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Existing booking steps */}
         <section ref={howItWorksRef} className="bg-burgundy text-cream" style={{ padding: 'var(--spacing-24) 0' }}>
           <div className="container">
             <div style={{ maxWidth: '600px', marginBottom: 'var(--spacing-16)' }}>
@@ -396,41 +460,51 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Brand story teaser */}
-        <section ref={storyRef} style={{ padding: 'var(--spacing-24) 0', backgroundColor: 'var(--hammock-cream)', overflow: 'hidden' }}>
+        {/* 7. New comfort highlights */}
+        <section style={{ padding: 'var(--spacing-24) 0', backgroundColor: 'var(--hammock-cream)' }}>
           <div className="container">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
-              <div style={{ flex: '1 1 400px' }}>
-                <span style={{ color: 'var(--hammock-olive)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Why HAMMOCK</span>
-                <h2 className="text-h2" style={{ marginTop: '1rem', marginBottom: '2rem' }}>A signature of comfort.</h2>
-                <p className="text-body-lg" style={{ marginBottom: '2.5rem', opacity: 0.9 }}>
-                  HAMMOCK turns the feeling of a suspended hammock into a refined hospitality experience—a place to pause, unwind, and feel at ease.
-                </p>
-                <Link href="/about" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '1px solid var(--hammock-burgundy)', paddingBottom: '0.25rem' }}>
-                  Our story <span aria-hidden="true">&rarr;</span>
-                </Link>
+            <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-16)' }}>
+              <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>AT HAMMOCK</span>
+              <h2 className="text-h2" style={{ marginTop: '1rem', fontFamily: 'var(--hammock-display)' }}>Everything you need to feel at ease.</h2>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '3rem' }}>
+              <div style={{ borderTop: '1px solid rgba(89, 10, 23, 0.1)', paddingTop: '2rem' }}>
+                <h3 className="text-h4" style={{ fontFamily: 'var(--hammock-display)', marginBottom: '1rem' }}>Comfortable Rooms</h3>
+                <p style={{ opacity: 0.8, lineHeight: 1.6 }}>Thoughtfully arranged spaces designed for rest, privacy and an easy stay.</p>
               </div>
-              <div style={{ flex: '1 1 500px', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                {/* 4-8% larger height for parallax scrub */}
-                <div style={{ position: 'absolute', top: '-8%', left: 0, right: 0, bottom: '-8%' }}>
-                  <Image className="story-image" src="/images/05-reception-lounge.jpg" alt="Reception Lounge" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
-                </div>
+              <div style={{ borderTop: '1px solid rgba(89, 10, 23, 0.1)', paddingTop: '2rem' }}>
+                <h3 className="text-h4" style={{ fontFamily: 'var(--hammock-display)', marginBottom: '1rem' }}>Private Gym</h3>
+                <p style={{ opacity: 0.8, lineHeight: 1.6 }}>A dedicated space to keep moving and maintain your routine during your stay.</p>
+              </div>
+              <div style={{ borderTop: '1px solid rgba(89, 10, 23, 0.1)', paddingTop: '2rem' }}>
+                <h3 className="text-h4" style={{ fontFamily: 'var(--hammock-display)', marginBottom: '1rem' }}>Conference Space</h3>
+                <p style={{ opacity: 0.8, lineHeight: 1.6 }}>A considered setting for meetings, discussions and productive gatherings.</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section ref={finalCtaRef} className="bg-burgundy text-cream" style={{ padding: 'var(--spacing-32) 0', textAlign: 'center', position: 'relative', overflow: 'hidden', clipPath: 'inset(0 0 0 0)' }}>
+        {/* 8. New direct booking CTA */}
+        <section className="bg-burgundy text-cream" style={{ padding: 'var(--spacing-32) 0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.05, pointerEvents: 'none' }}>
             <Image src="/h-mark-cream.svg" alt="" width={600} height={600} />
           </div>
           <div className="container" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Image src="/h-mark-cream.svg" alt="" width={48} height={48} style={{ marginBottom: '2rem' }} />
-            <h2 className="text-display" style={{ marginBottom: '3rem' }}>Stay. Unwind. Repeat.</h2>
-            <a href={createWhatsAppUrl(getGeneralBookingMessage())} target="_blank" rel="noopener noreferrer" className="btn" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)', padding: '1rem 3rem', fontSize: '1rem', textDecoration: 'none', display: 'inline-block', borderRadius: '999px' }}>
-              Book your stay
-            </a>
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', opacity: 0.8 }}>PLAN YOUR STAY</span>
+            <h2 className="text-display" style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>Ready to slow down?</h2>
+            <p className="text-body-lg" style={{ marginBottom: '3rem', opacity: 0.9, maxWidth: '500px' }}>
+              Tell us your preferred dates and we’ll help you explore the available rooms.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="btn" style={{ backgroundColor: 'var(--hammock-cream)', color: 'var(--hammock-burgundy)', padding: '1rem 2.5rem', fontSize: '1rem', textDecoration: 'none', display: 'inline-flex', borderRadius: '999px', fontWeight: 500 }}>
+                Book on WhatsApp
+              </a>
+              <Link href="/contact" className="btn" style={{ border: '1px solid var(--hammock-cream)', color: 'var(--hammock-cream)', padding: '1rem 2.5rem', fontSize: '1rem', textDecoration: 'none', display: 'inline-flex', borderRadius: '999px', fontWeight: 500 }}>
+                Contact HAMMOCK
+              </Link>
+            </div>
           </div>
         </section>
       </main>
