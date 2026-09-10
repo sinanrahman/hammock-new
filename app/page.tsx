@@ -407,7 +407,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="welcome-img-wrapper" style={{ flex: '1 1 500px', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                <Image className="welcome-img-inner" src="/images/about-story.jpeg" alt="Hammock Interior" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
+                <Image className="welcome-img-inner" src="/images/light.jpg" alt="Hammock Interior" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
               </div>
             </div>
           </div>

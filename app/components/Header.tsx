@@ -54,16 +54,13 @@ export default function Header() {
   }, [mobileMenuOpen]);
 
   const navLinks = [
+    { label: 'Home', href: '/' },
     { label: 'Rooms & Suites', href: '/rooms' },
     { label: 'About', href: '/about' },
-    { label: 'FAQ', href: '/faq' },
     { label: 'Contact', href: '/contact' },
   ];
 
-  const mobileNavLinks = [
-    { label: 'Home', href: '/' },
-    ...navLinks,
-  ];
+  const mobileNavLinks = navLinks;
 
   return (
     <>

@@ -18,12 +18,16 @@ export default function Preloader() {
   const { setPreloaderFinished } = usePreloader();
   const container = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const assetsLoadedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceReplay = process.env.NODE_ENV === 'development' && urlParams.get('replay_intro') === 'true';
     const hasVisited = sessionStorage.getItem('hammock_visited');
     
-    if (!hasVisited) {
+    if (!hasVisited || forceReplay) {
       setIsFirstVisit(true);
       sessionStorage.setItem('hammock_visited', 'true');
       
@@ -34,8 +38,6 @@ export default function Preloader() {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
       
-      const startTime = Date.now();
-      const minDuration = 400; // Hold briefly (200ms logo fade in + 200ms hold)
       const maxDuration = 4000;
 
       const loadPromise = Promise.all([
@@ -51,21 +53,12 @@ export default function Preloader() {
       const timeoutPromise = new Promise((resolve) => setTimeout(resolve, maxDuration));
 
       Promise.race([loadPromise, timeoutPromise]).then(() => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, minDuration - elapsed);
+        assetsLoadedRef.current = true;
         
-        setTimeout(() => {
-          // Trigger the exit animation
-          if (tlRef.current) {
-            tlRef.current.play();
-          } else {
-            // Fallback if GSAP is not ready
-            setShow(false);
-            setPreloaderFinished(true);
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-          }
-        }, remaining);
+        // If the timeline hit the minimum logo display time and paused, resume it
+        if (tlRef.current && tlRef.current.paused()) {
+          tlRef.current.play();
+        }
       });
       
     } else {
@@ -85,7 +78,6 @@ export default function Preloader() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const tl = gsap.timeline({
-      paused: true,
       onComplete: () => {
         setShow(false);
         document.body.style.overflow = '';
@@ -96,34 +88,49 @@ export default function Preloader() {
 
     tlRef.current = tl;
 
-    // Logo entrance
-    gsap.fromTo('.preloader-logo', 
-      { opacity: 0 }, 
-      { opacity: 1, duration: 0.2, ease: 'none' }
-    );
-
     if (prefersReducedMotion) {
+      tl.add(() => {
+        if (!assetsLoadedRef.current) tl.pause();
+      });
       tl.add(() => setPreloaderFinished(true), 0);
       tl.to('.preloader-overlay', { opacity: 0, duration: 0.5, ease: 'power2.inOut' });
     } else {
-      // 1. Fade out logo
-      tl.to('.preloader-logo', { opacity: 0, duration: 0.18, ease: 'power2.inOut' });
+      // 1. Show cream H mark with 250ms fade
+      tl.fromTo('.preloader-logo', 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 0.25, ease: 'none' }
+      );
+      
+      // 2. Keep clearly visible for 650ms after entrance
+      tl.to({}, { duration: 0.65 });
+      
+      // 3. Asset readiness check before proceeding
+      tl.add(() => {
+        if (!assetsLoadedRef.current) {
+          tl.pause();
+        }
+      });
+      
+      // 4. Fade logo out over 250ms
+      tl.to('.preloader-logo', { opacity: 0, duration: 0.25, ease: 'power2.inOut' });
       
       // Trigger hero animation underneath slightly before panels retract
-      // This avoids heavy React re-renders dropping frames on the exact start of the GSAP animation
       tl.add(() => setPreloaderFinished(true), "-=0.1");
       
-      // 2. Stagger panels up
+      // Right before panels move, clear the overlay's safety background color
+      tl.set('.preloader-overlay', { backgroundColor: 'transparent' }, ">");
+
+      // 5. Stagger panels up
       const isMobile = window.innerWidth < 768;
       const allPanels = gsap.utils.toArray('.preloader-panel');
       const visiblePanels = isMobile ? allPanels.slice(0, 5) : allPanels;
       
       tl.to(visiblePanels, {
         yPercent: -101, // Over-extend slightly to ensure no 1px subpixel bleeding at the top edge
-        duration: 0.8,
+        duration: 0.95,
         ease: 'power2.inOut',
-        stagger: 0.085
-      }, "-=0.05");
+        stagger: 0.1
+      }, "<"); // "<" means start immediately at the same time as the transparent set
     }
   }, { scope: container, dependencies: [isFirstVisit] });
 
@@ -147,6 +154,8 @@ export default function Preloader() {
         inset: 0,
         zIndex: 9999,
         pointerEvents: 'auto',
+        // Solid background initially to prevent any layout flashes before panels are ready
+        backgroundColor: 'var(--hammock-burgundy)'
       }}
     >
       {/* Background panels */}
