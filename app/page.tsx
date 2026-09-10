@@ -24,6 +24,7 @@ export default function Home() {
   
   // Ref hooks for sections
   const featuresSectionRef = useRef<HTMLElement>(null);
+  const mobileFeaturesSectionRef = useRef<HTMLElement>(null);
   const howItWorksRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
@@ -195,20 +196,48 @@ export default function Home() {
                .from('.welcome-copy, .welcome-cta', { opacity: 0, y: 16, duration: 0.6, ease: 'power3.out', stagger: 0.1 }, "-=0.4")
                .from('.welcome-img-wrapper', { opacity: 0, y: 16, duration: 0.6, ease: 'power3.out' }, "-=0.4");
 
-      // 3. Protected Section Mobile (UNTOUCHED)
-      const mobileItems = gsap.utils.toArray('.mobile-features .feature-item-mobile') as HTMLElement[];
-      mobileItems.forEach((item) => {
-        gsap.from(item, {
-          y: 40,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
+      // 3. Protected Section Mobile Pinned Animation
+      const mobileSection = mobileFeaturesSectionRef.current;
+      const mobImgLayers = gsap.utils.toArray('.mobile-features .mobile-img-layer') as HTMLElement[];
+      const mobTextLayers = gsap.utils.toArray('.mobile-features .mobile-text-layer') as HTMLElement[];
+
+      if (mobImgLayers.length > 0 && mobileSection) {
+        ScrollTrigger.create({
+          trigger: mobileSection,
+          start: "top top",
+          end: "+=2000",
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true
+        });
+
+        const mobTl = gsap.timeline({
           scrollTrigger: {
-            trigger: item,
-            start: "top 80%",
+            trigger: mobileSection,
+            start: "top top",
+            end: "+=2000",
+            scrub: 1,
           }
         });
-      });
+
+        // Initial states
+        gsap.set(mobImgLayers.slice(1), { opacity: 0 });
+        gsap.set(mobTextLayers.slice(1), { opacity: 0, y: 24, autoAlpha: 0 });
+        gsap.set(mobTextLayers[0], { opacity: 1, y: 0, autoAlpha: 1 });
+
+        // Transition 1 (Stay -> Move)
+        mobTl.to(mobTextLayers[0], { autoAlpha: 0, y: -24, duration: 1, ease: "power2.inOut" }, "mobStep1")
+             .to(mobImgLayers[1], { opacity: 1, duration: 1, ease: "power2.inOut" }, "mobStep1")
+             .to(mobTextLayers[1], { autoAlpha: 1, y: 0, duration: 1, ease: "power2.inOut" }, "mobStep1+=0.2");
+
+        mobTl.to({}, { duration: 0.5 }); // Pause
+
+        // Transition 2 (Move -> Meet)
+        mobTl.to(mobTextLayers[1], { autoAlpha: 0, y: -24, duration: 1, ease: "power2.inOut" }, "mobStep2")
+             .to(mobImgLayers[2], { opacity: 1, duration: 1, ease: "power2.inOut" }, "mobStep2")
+             .to(mobTextLayers[2], { autoAlpha: 1, y: 0, duration: 1, ease: "power2.inOut" }, "mobStep2+=0.2");
+      }
 
       // 4. Hospitality introduction
       const hospTl = gsap.timeline({ scrollTrigger: { trigger: '.hospitality-section', start: 'top 80%' } });
@@ -388,6 +417,16 @@ export default function Home() {
         <section className="welcome-section" style={{ padding: 'var(--spacing-24) 0', backgroundColor: 'var(--hammock-cream)' }}>
           <div className="container">
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center' }}>
+              
+              <div className="welcome-img-wrapper" style={{ flex: '1 1 500px', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+                <div className="desktop-only" style={{ position: 'absolute', inset: 0 }}>
+                  <Image className="welcome-img-inner" src="/images/light.jpg" alt="Hammock Interior" fill sizes="50vw" style={{ objectFit: 'cover' }} />
+                </div>
+                <div className="mobile-only" style={{ position: 'absolute', inset: 0 }}>
+                  <Image className="welcome-img-inner" src="/images/light-mobile.png" alt="Hammock Interior" fill sizes="100vw" style={{ objectFit: 'cover' }} />
+                </div>
+              </div>
+
               <div style={{ flex: '1 1 400px' }}>
                 <span className="welcome-label" style={{ display: 'block', color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>WELCOME TO HAMMOCK</span>
                 <h2 className="welcome-heading text-h2" style={{ marginTop: '1rem', marginBottom: '2rem', fontFamily: 'var(--hammock-display)' }}>A thoughtful stay, made to feel effortless.</h2>
@@ -398,17 +437,15 @@ export default function Home() {
                   Whether you are visiting for a short break, travelling with family or staying a little longer, our spaces are designed to help you settle in and feel at ease.
                 </p>
                 <div className="welcome-cta" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <Link href="/about" className="btn btn-primary" style={{ padding: '1rem 2rem', borderRadius: '999px', display: 'inline-flex' }}>
+                  <Link href="/about" className="btn btn-primary" style={{ padding: '1rem 2rem' }}>
                     Discover HAMMOCK
                   </Link>
-                  <a href="https://wa.me/918547731887?text=Hello%20HAMMOCK%20Suites%20%26%20Rooms%2C%20I%20would%20like%20to%20know%20more%20about%20your%20rooms%20and%20stay%20options." target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '1rem 2rem', borderRadius: '999px', display: 'inline-flex', border: '1px solid var(--hammock-burgundy)', color: 'var(--hammock-burgundy)' }}>
+                  <a href="https://wa.me/918547731887?text=Hello%20HAMMOCK%20Suites%20%26%20Rooms%2C%20I%20would%20like%20to%20know%20more%20about%20your%20rooms%20and%20stay%20options." target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding: '1rem 2rem' }}>
                     Send a Message
                   </a>
                 </div>
               </div>
-              <div className="welcome-img-wrapper" style={{ flex: '1 1 500px', position: 'relative', height: '70vh', minHeight: '500px', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                <Image className="welcome-img-inner" src="/images/light.jpg" alt="Hammock Interior" fill sizes="(max-width: 1024px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
-              </div>
+
             </div>
           </div>
         </section>
@@ -462,38 +499,43 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section Mobile (Standard Scroll) - PROTECTED SECTION */}
-        <section data-animation-protected="stay-move-meet" className="mobile-features" style={{ padding: 'var(--spacing-16) 0' }}>
-          <div className="container">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-16)' }}>
-              <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
-                </div>
-                <div>
-                  <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Stay</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>Rooms made for real rest</h2>
-                </div>
+        {/* Features Section Mobile (Pinned Vertical Animation) */}
+        <section ref={mobileFeaturesSectionRef} data-animation-protected="stay-move-meet" className="mobile-features" style={{ padding: '0 20px', height: '100svh', minHeight: '100svh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            
+            {/* Image Container: 55-60% height */}
+            <div style={{ position: 'relative', width: '100%', height: 'clamp(300px, 55svh, 480px)', borderRadius: '24px', overflow: 'hidden', marginBottom: '24px' }}>
+              <div className="mobile-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: 1 }}>
+                <Image src="/images/02-luxury-suite.jpg" alt="Luxury Suite" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center' }} />
               </div>
-              <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
-                </div>
-                <div>
-                  <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Move</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>A private gym, ready when you are</h2>
-                </div>
+              <div className="mobile-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 2, opacity: 0 }}>
+                <Image src="/images/03-hotel-gym.jpg" alt="Hotel Gym" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center' }} />
               </div>
-              <div className="feature-item-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div style={{ position: 'relative', height: '60vh', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-                  <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="(max-width: 1024px) 90vw, 100vw" style={{ objectFit: 'cover' }} />
-                </div>
-                <div>
-                  <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.875rem', fontWeight: 500 }}>Meet</span>
-                  <h2 className="text-h3" style={{ marginTop: '0.5rem', fontFamily: 'var(--hammock-display)' }}>A conference room that means business</h2>
-                </div>
+              <div className="mobile-img-layer" style={{ position: 'absolute', inset: 0, zIndex: 3, opacity: 0 }}>
+                <Image src="/images/04-conference-hall.jpg" alt="Conference Hall" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center' }} />
               </div>
             </div>
+
+            {/* Text Container: CSS Grid used to overlay text blocks without absolute positioning */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', width: '100%' }}>
+              
+              <div className="mobile-text-layer" style={{ gridArea: '1/1', display: 'flex', flexDirection: 'column', opacity: 1, visibility: 'visible' }}>
+                <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '13px', fontWeight: 500, marginBottom: '0.5rem' }}>Stay</span>
+                <h2 style={{ fontFamily: 'var(--hammock-display)', fontSize: 'clamp(2.2rem, 10vw, 3.5rem)', lineHeight: 1.05, color: 'var(--hammock-burgundy)', margin: 0 }}>Rooms made for real rest</h2>
+              </div>
+
+              <div className="mobile-text-layer" style={{ gridArea: '1/1', display: 'flex', flexDirection: 'column', opacity: 0, visibility: 'hidden' }}>
+                <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '13px', fontWeight: 500, marginBottom: '0.5rem' }}>Move</span>
+                <h2 style={{ fontFamily: 'var(--hammock-display)', fontSize: 'clamp(2.2rem, 10vw, 3.5rem)', lineHeight: 1.05, color: 'var(--hammock-burgundy)', margin: 0 }}>A private gym, ready when you are</h2>
+              </div>
+
+              <div className="mobile-text-layer" style={{ gridArea: '1/1', display: 'flex', flexDirection: 'column', opacity: 0, visibility: 'hidden' }}>
+                <span style={{ color: 'var(--hammock-rose)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '13px', fontWeight: 500, marginBottom: '0.5rem' }}>Meet</span>
+                <h2 style={{ fontFamily: 'var(--hammock-display)', fontSize: 'clamp(2.2rem, 10vw, 3.5rem)', lineHeight: 1.05, color: 'var(--hammock-burgundy)', margin: 0 }}>A conference room that means business</h2>
+              </div>
+
+            </div>
+
           </div>
         </section>
 
@@ -649,11 +691,15 @@ export default function Home() {
 
       <Footer />
       <style jsx global>{`
-        .desktop-features { display: none; }
-        .mobile-features { display: block; }
+        .desktop-features { display: none !important; }
+        .mobile-features { display: flex !important; }
+        .desktop-only { display: none !important; }
+        .mobile-only { display: block !important; }
         @media (min-width: 1024px) {
-          .desktop-features { display: block; }
-          .mobile-features { display: none; }
+          .desktop-features { display: flex !important; }
+          .mobile-features { display: none !important; }
+          .desktop-only { display: block !important; }
+          .mobile-only { display: none !important; }
         }
         
         .room-card-img {

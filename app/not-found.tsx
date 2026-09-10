@@ -8,10 +8,10 @@ export default function NotFound() {
       <Header />
       <main>
         <div style={{ height: 'var(--nav-height)', backgroundColor: 'var(--hammock-cream)' }} />
-        <section style={{ 
-          minHeight: '60vh', 
-          display: 'flex', 
-          alignItems: 'center', 
+        <section style={{
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'var(--hammock-cream)',
           padding: 'var(--spacing-16) 0'

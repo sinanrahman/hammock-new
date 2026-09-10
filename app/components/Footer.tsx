@@ -154,10 +154,10 @@ export default function Footer() {
           /* The logo image has significant top/bottom padding. 
              By using a negative bottom margin and an aspect-ratio driven height, 
              we pull it flush to the bottom edge. */
-          height: 25vw; /* Approximate height based on typical logo aspect ratios */
+          height: 23vw; /* Approximate height based on typical logo aspect ratios */
           max-height: 400px;
           min-height: 150px;
-          margin-bottom: -4%; /* Pull down to hide empty bottom padding */
+          margin-bottom: -8.5%; /* Pull down further to hide empty bottom padding */
         }
 
         @media (max-width: 1024px) {
@@ -187,7 +187,7 @@ export default function Footer() {
           .oversized-logo-container {
             width: 95%;
             height: 35vw;
-            margin-bottom: -5%;
+            margin-bottom: -12%;
           }
         }
 
@@ -205,7 +205,7 @@ export default function Footer() {
           .oversized-logo-container {
             width: 95%;
             height: 45vw;
-            margin-bottom: -6%;
+            margin-bottom: -15%;
           }
         }
       `}</style>
